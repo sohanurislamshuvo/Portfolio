@@ -11,4 +11,4 @@ RUN npm i -g serve
 COPY --from=build /app/dist ./dist
 ENV PORT=80
 EXPOSE 80
-CMD ["serve", "-s", "dist", "-l", "${PORT}"]
+CMD sh -c "serve -s dist -l ${PORT}"
