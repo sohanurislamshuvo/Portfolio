@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from .routers import auth, portfolio, messages
+from .db import db_cursor
+import bcrypt
 
 
 PORT = int(os.getenv("PORT", 3001))
@@ -35,4 +37,13 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(portfolio.router, prefix="/api/portfolio", tags=["portfolio"])
 app.include_router(messages.router, prefix="/api/messages", tags=["messages"])
 
+@app.on_event("startup")
+def bootstrap_admin_password():
+    username = os.getenv("ADMIN_USERNAME", "shuvo")
+    new_password = os.getenv("ADMIN_PASSWORD", "")
+    if not new_password:
+        return
+    pw_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    with db_cursor() as cur:
+        cur.execute("UPDATE users SET password_hash = ? WHERE username = ?", (pw_hash, username))
 
